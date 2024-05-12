@@ -1,1 +1,2 @@
-# Create Debian 12
+# Otus Linux Professional
+
