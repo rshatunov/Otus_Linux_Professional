@@ -18,6 +18,13 @@ Vagrant.configure("2") do |config|
         v.memory = boxconfig[:memory]
         v.cpus = boxconfig[:cpus]
       end
+      box.vm.provision "shell", inline: <<-SHELL
+        sudo -i
+        echo 'deb http://deb.debian.org/debian/ bookworm-backports main contrib non-free non-free-firmware' >> /etc/apt/sources.list
+        apt update &> /dev/null
+        apt install -y linux-image-6.5.0-0.deb12.4-amd64 &> /dev/null
+        reboot
+      SHELL
     end
   end
 end
