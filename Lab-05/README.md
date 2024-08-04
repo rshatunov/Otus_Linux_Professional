@@ -684,7 +684,7 @@ tmpfs                               244M     0  244M   0% /sys/fs/cgroup
 
 ### Работа со снапшотами
  <details>
-<summary> Конфигурация grub: </summary>
+<summary> Генерируем файлы в /home/: </summary>
 
 ```
                                         
@@ -694,20 +694,64 @@ tmpfs                               244M     0  244M   0% /sys/fs/cgroup
 <summary> Конфигурация grub: </summary>
 
 ```
-                                        
+[root@lvm ~]# touch /home/file{1..20}
+[root@lvm ~]# 
+[root@lvm ~]# ls /home
+file1  file10  file11  file12  file13  file14  file15  file16  file17  file18  file19  file2  file20  file3  file4  file5  file6  file7  file8  file9  vagrant                                        
 ```
 </details>
  <details>
-<summary> Конфигурация grub: </summary>
+<summary> Создание снапшота: </summary>
 
 ```
-                                        
+[root@lvm ~]#  lvcreate -L 100MB -s -n home_snap /dev/VolGroup00/LogVol_Home
+  Rounding up size to full physical extent 128.00 MiB
+  Logical volume "home_snap" created.
+[root@lvm ~]# 
+[root@lvm ~]# lvs
+  LV          VG         Attr       LSize   Pool Origin      Data%  Meta%  Move Log Cpy%Sync Convert
+  LogVol00    VolGroup00 -wi-ao----   8.00g                                                         
+  LogVol01    VolGroup00 -wi-ao----   1.50g                                                         
+  LogVol_Home VolGroup00 owi-aos---   2.00g                                                         
+  home_snap   VolGroup00 swi-a-s--- 128.00m      LogVol_Home 0.00                                   
+  lv_var      vg_var     rwi-aor--- 952.00m                                         
 ```
 </details>
  <details>
-<summary> Конфигурация grub: </summary>
+<summary> Удалить часть файлов: </summary>
 
 ```
-                                        
+[root@lvm ~]#  rm -f /home/file{11..20}                                       
+```
+</details>
+ <details>
+<summary> Процесс восстановления из снапшота: </summary>
+
+```
+[root@lvm ~]# ls -la /home/
+total 0
+drwxr-xr-x.  3 root    root    292 Aug  4 13:30 .
+drwxr-xr-x. 18 root    root    239 Aug  4 12:51 ..
+-rw-r--r--.  1 root    root      0 Aug  4 13:30 file1
+-rw-r--r--.  1 root    root      0 Aug  4 13:30 file10
+-rw-r--r--.  1 root    root      0 Aug  4 13:30 file11
+-rw-r--r--.  1 root    root      0 Aug  4 13:30 file12
+-rw-r--r--.  1 root    root      0 Aug  4 13:30 file13
+-rw-r--r--.  1 root    root      0 Aug  4 13:30 file14
+-rw-r--r--.  1 root    root      0 Aug  4 13:30 file15
+-rw-r--r--.  1 root    root      0 Aug  4 13:30 file16
+-rw-r--r--.  1 root    root      0 Aug  4 13:30 file17
+-rw-r--r--.  1 root    root      0 Aug  4 13:30 file18
+-rw-r--r--.  1 root    root      0 Aug  4 13:30 file19
+-rw-r--r--.  1 root    root      0 Aug  4 13:30 file2
+-rw-r--r--.  1 root    root      0 Aug  4 13:30 file20
+-rw-r--r--.  1 root    root      0 Aug  4 13:30 file3
+-rw-r--r--.  1 root    root      0 Aug  4 13:30 file4
+-rw-r--r--.  1 root    root      0 Aug  4 13:30 file5
+-rw-r--r--.  1 root    root      0 Aug  4 13:30 file6
+-rw-r--r--.  1 root    root      0 Aug  4 13:30 file7
+-rw-r--r--.  1 root    root      0 Aug  4 13:30 file8
+-rw-r--r--.  1 root    root      0 Aug  4 13:30 file9
+drwx------.  4 vagrant vagrant 169 Aug  4 09:41 vagrant                                        
 ```
 </details>
