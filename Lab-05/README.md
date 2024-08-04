@@ -3,46 +3,58 @@
 ### Цели:
 - Научиться создавать и работать с логическими томами.
 
+### Уменьшить том под / до 8G:
  <details>
-<summary>  Уменьшить том под / до 8G: </summary>
+<summary>  Создание временного тома: </summary>
 
 ```
-#### Базовая настройка ####
-set system host-name Spine-01
-delete interfaces
-set interfaces xe-0/0/1 description "### Link to Leaf-01 int xe-0/0/1 ###"
-set interfaces xe-0/0/1.0 family inet address 10.2.1.0/31
-set interfaces xe-0/0/2 description "### Link to Leaf-02 int xe-0/0/1 ###"
-set interfaces xe-0/0/2.0 family inet address 10.2.1.2/31
-set interfaces xe-0/0/3 description "### Link to Leaf-03 int xe-0/0/1 ###"
-set interfaces xe-0/0/3.0 family inet address 10.2.1.4/31
-set interfaces em1 description "### Link to vQFX-PFE int em1 ###"
-set interfaces em1.0 family inet address 169.254.0.2/24
-set interfaces lo0.0 family inet address 10.0.1.0/32
+[root@lvm vagrant]# pvcreate /dev/sdb
+  Physical volume "/dev/sdb" successfully created.
+[root@lvm vagrant]# pvs
+  PV         VG         Fmt  Attr PSize   PFree 
+  /dev/sda3  VolGroup00 lvm2 a--  <38.97g     0 
+  /dev/sdb              lvm2 ---   10.00g 10.00g
+ 
+[root@lvm vagrant]# vgcreate vg_root /dev/sdb
+  Volume group "vg_root" successfully created
+[root@lvm vagrant]# vgs
+  VG         #PV #LV #SN Attr   VSize   VFree  
+  VolGroup00   1   2   0 wz--n- <38.97g      0 
+  vg_root      1   0   0 wz--n- <10.00g <10.00g
 
-#### Настройка IS-IS ####
-set interfaces lo0.0 family iso address 49.0001.0100.0000.1000.00
-set interfaces xe-0/0/1.0 family iso
-set interfaces xe-0/0/2.0 family iso
-set interfaces xe-0/0/3.0 family iso
-set protocols isis level 2 wide-metrics-only
-set protocols isis level 1 disable
-set protocols isis interface xe-0/0/1.0 point-to-point
-set protocols isis interface xe-0/0/1.0 family inet bfd-liveness-detection minimum-interval 200 multiplier 3
-set protocols isis interface xe-0/0/1.0 level 2 metric 10
-set protocols isis interface xe-0/0/1.0 level 2 hello-authentication-key "$9$5Q/tIRSleW36evWX-d5Qz6tu"
-set protocols isis interface xe-0/0/1.0 level 2 hello-authentication-type md5
-set protocols isis interface xe-0/0/2.0 point-to-point
-set protocols isis interface xe-0/0/2.0 family inet bfd-liveness-detection minimum-interval 200 multiplier 3
-set protocols isis interface xe-0/0/2.0 level 2 metric 10
-set protocols isis interface xe-0/0/2.0 level 2 hello-authentication-key "$9$5Q/tIRSleW36evWX-d5Qz6tu"
-set protocols isis interface xe-0/0/2.0 level 2 hello-authentication-type md5
-set protocols isis interface xe-0/0/3.0 point-to-point
-set protocols isis interface xe-0/0/3.0 family inet bfd-liveness-detection minimum-interval 200 multiplier 3
-set protocols isis interface xe-0/0/3.0 level 2 metric 10
-set protocols isis interface xe-0/0/3.0 level 2 hello-authentication-key "$9$5Q/tIRSleW36evWX-d5Qz6tu"
-set protocols isis interface xe-0/0/3.0 level 2 hello-authentication-type md5
-set protocols isis interface interface lo0.0 passive
+[root@lvm vagrant]# lvcreate -n lv_root -l +100%FREE /dev/vg_root
+  Logical volume "lv_root" created.
+[root@lvm vagrant]# lvs
+  LV       VG         Attr       LSize   Pool Origin Data%  Meta%  Move Log Cpy%Sync Convert
+  LogVol00 VolGroup00 -wi-ao---- <37.47g                                                    
+  LogVol01 VolGroup00 -wi-ao----   1.50g                                                    
+  lv_root  vg_root    -wi-a----- <10.00g                                                    
 ```
 </details>
+ <details>
+<summary>  Создание временного тома: </summary>
 
+```
+[root@lvm vagrant]# pvcreate /dev/sdb
+  Physical volume "/dev/sdb" successfully created.
+[root@lvm vagrant]# pvs
+  PV         VG         Fmt  Attr PSize   PFree 
+  /dev/sda3  VolGroup00 lvm2 a--  <38.97g     0 
+  /dev/sdb              lvm2 ---   10.00g 10.00g
+ 
+[root@lvm vagrant]# vgcreate vg_root /dev/sdb
+  Volume group "vg_root" successfully created
+[root@lvm vagrant]# vgs
+  VG         #PV #LV #SN Attr   VSize   VFree  
+  VolGroup00   1   2   0 wz--n- <38.97g      0 
+  vg_root      1   0   0 wz--n- <10.00g <10.00g
+
+[root@lvm vagrant]# lvcreate -n lv_root -l +100%FREE /dev/vg_root
+  Logical volume "lv_root" created.
+[root@lvm vagrant]# lvs
+  LV       VG         Attr       LSize   Pool Origin Data%  Meta%  Move Log Cpy%Sync Convert
+  LogVol00 VolGroup00 -wi-ao---- <37.47g                                                    
+  LogVol01 VolGroup00 -wi-ao----   1.50g                                                    
+  lv_root  vg_root    -wi-a----- <10.00g                                                    
+```
+</details>
