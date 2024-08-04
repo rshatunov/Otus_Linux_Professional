@@ -1,0 +1,15 @@
+---
+- name: PAM | Install and configure NGINX
+  hosts: pam
+  become: true
+  vars:
+    nginx_listen_port: 8080
+
+  tasks:
+   - name: Create users
+     ansible.builtin.shell: useradd otusadm -m && sudo useradd otus -m
+
+   - name: NGINX | Create NGINX config file from template
+     template:
+      src: login.sh
+      dest: /usr/local/bin/
