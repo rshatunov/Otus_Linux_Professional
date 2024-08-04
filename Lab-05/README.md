@@ -5,7 +5,7 @@
 
 ### Уменьшить том под / до 8G:
  <details>
-<summary>  Создание временного тома: </summary>
+<summary> Создание временного тома: </summary>
 
 ```
 [root@lvm vagrant]# pvcreate /dev/sdb
@@ -32,7 +32,7 @@
 ```
 </details>
  <details>
-<summary>  Создание файловой системы и монтирование: </summary>
+<summary> Создание файловой системы и монтирование: </summary>
 
 ```
 [root@lvm vagrant]# mkfs.xfs /dev/vg_root/lv_root
@@ -62,7 +62,7 @@ tmpfs                             49M     0   49M   0% /run/user/1000
 ```
 </details>
  <details>
-<summary> Копирование всех данных с / раздела в /mnt: : </summary>
+<summary> Копирование всех данных с / раздела в /mnt: </summary>
 
 ```
 [root@lvm vagrant]# mkfs.xfs /dev/vg_root/lv_root
