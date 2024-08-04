@@ -470,6 +470,7 @@ Skipping udev rule: 91-permissions.rules
 
 ```
 </details>
+
 ### Выделить том под /var в зеркало
  <details>
 <summary> Конфигурация grub: </summary>
