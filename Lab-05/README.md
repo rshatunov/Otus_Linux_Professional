@@ -728,6 +728,14 @@ file1  file10  file11  file12  file13  file14  file15  file16  file17  file18  f
 <summary> Процесс восстановления из снапшота: </summary>
 
 ```
+[root@lvm ~]#  umount /home
+[root@lvm ~]# 
+[root@lvm ~]# lvconvert --merge /dev/VolGroup00/home_snap
+  Merging of volume VolGroup00/home_snap started.
+  VolGroup00/LogVol_Home: Merged: 100.00%
+[root@lvm ~]# 
+[root@lvm ~]#  mount /home
+[root@lvm ~]#
 [root@lvm ~]# ls -la /home/
 total 0
 drwxr-xr-x.  3 root    root    292 Aug  4 13:30 .
