@@ -566,15 +566,9 @@ UUID="63151059-77f0-41a8-a2b6-bfc87d8ad7c7" /var ext4 defaults 0 0
 <summary> Конфигурация grub: </summary>
 
 ```
-                                        
-```
-</details>
- <details>
-<summary> Выходим из chroot и перезагружаемся: </summary>
-```
 [root@lvm /]# exit
 
-[root@lvm vagrant]# reboot                                   
+[root@lvm vagrant]# reboot                                      
 ```
 </details>
  <details>
