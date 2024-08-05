@@ -1,17 +1,33 @@
 ---
-- name: Convigure host PAM
+- name: Configure host PAM
   hosts: pam
   become: true
   vars:
     nginx_listen_port: 8080
 
   tasks:
-   - name: Create users
-     ansible.builtin.shell: | 
-     useradd otusadm -m && sudo useradd otus -m &&
-     echo -e "Otus2022\nOtus2022" | passwd otusadm && echo -e "Otus2022\nOtus2022" | passwd otus &&
-     groupadd -f admin &&
-     usermod otusadm -a -G admin && usermod root -a -G admin && usermod vagrant -a -G admin
+   - name: Create group
+     group:
+       name: admin
+       state: present 
+
+   - name: Create user otus 
+     user:
+       name: otus
+       create_home: yes
+       groups: admin
+       append: yes
+       password: "{{ 'Otus2022' | password_hash('sha512') }}"
+       shell: /bin/bash
+
+   - name: Create user otusadm
+     user:
+       name: otusadm
+       create_home: yes
+       groups: admin
+       append: yes
+       password: "{{ 'Otus2022' | password_hash('sha512') }}"
+       shell: /bin/bash
 
    - name: Copy script
      template:
