@@ -1,5 +1,5 @@
 ---
-- name: PAM | Install and configure NGINX
+- name: Convigure host PAM
   hosts: pam
   become: true
   vars:
@@ -7,9 +7,13 @@
 
   tasks:
    - name: Create users
-     ansible.builtin.shell: useradd otusadm -m && sudo useradd otus -m
+     ansible.builtin.shell: | 
+     useradd otusadm -m && sudo useradd otus -m &&
+     echo -e "Otus2022\nOtus2022" | passwd otusadm && echo -e "Otus2022\nOtus2022" | passwd otus &&
+     groupadd -f admin &&
+     usermod otusadm -a -G admin && usermod root -a -G admin && usermod vagrant -a -G admin
 
-   - name: NGINX | Create NGINX config file from template
+   - name: Copy script
      template:
       src: login.sh
       dest: /usr/local/bin/
