@@ -10,14 +10,14 @@
      user:
        name: otus
        create_home: yes
-       password: "{{ 'Otus2022' | password_hash('sha512') }}"
+       password: "{{ 'Otus2022!' | password_hash('sha512') }}"
        shell: /bin/bash
 
    - name: Create user otusadm
      user:
        name: otusadm
        create_home: yes
-       password: "{{ 'Otus2022' | password_hash('sha512') }}"
+       password: "{{ 'Otus2022!' | password_hash('sha512') }}"
        shell: /bin/bash
 
    - name: Copy script
