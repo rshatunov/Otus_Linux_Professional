@@ -21,10 +21,9 @@ Vagrant.configure("2") do |config|
         v.memory = boxconfig[:memory]
         v.cpus = boxconfig[:cpus]
       end
-      box.vm.provision "shell", inline: <<-SHELL
-          sed -i 's/^PasswordAuthentication.*$/PasswordAuthentication yes/' /etc/ssh/sshd_config
-          systemctl restart sshd.service
-  	  SHELL
+      box.vm.provision "ansible" do |ansible|
+        ansible.playbook = "pam.yml"
+      end
     end
   end
 end
