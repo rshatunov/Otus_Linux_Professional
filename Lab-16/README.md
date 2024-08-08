@@ -3,20 +3,15 @@
 ### Цели
 - Научиться создавать пользователей и добавлять им ограничения
 
-### Уменьшить том под / до 8G
- <details>
-<summary> Создание временного тома: </summary>
+### Комментарии
+После создания ВМ запускается ansible playbook, который выполняет следующие настройки:
+- создание пользователей otus и otusadm 
+- копирование для pam скрипта login.sh на ВМ
+- создание группы admin и добавление в эту группу пользователей otusadm, root и vagrant
+- добавление разрешений на выполнение для скрипта login.sh
+- остановка сервиса синхронизации времени ВМ
+- установка на ВМ даты 2024-08-04
+Проверка выполненных настроек:
+- пользователь otusadm успешно подключается по ssh к ВМ
+- у пользователя otus возникает ошибка при подключение по ssh к ВМ
 
-```
-root@pam:~# useradd otusadm -m && sudo useradd otus -m
-root@pam:~#
-root@pam:~# echo -e "Otus2022\nOtus2022" | passwd otusadm && echo -e "Otus2022\nOtus2022" | passwd otus
-New password: Retype new password: passwd: password updated successfully
-New password: Retype new password: passwd: password updated successfully
-root@pam:~# 
-root@pam:~# groupadd -f admin
-root@pam:~# 
-root@pam:~# usermod otusadm -a -G admin && usermod root -a -G admin && usermod vagrant -a -G admin	
-root@pam:~#                                                   
-```
-</details>
