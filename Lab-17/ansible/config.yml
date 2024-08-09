@@ -1,6 +1,6 @@
 ---
 - name: Configure host PAM
-  hosts: pam
+  hosts: all
   become: true
   vars:
     nginx_listen_port: 8080
@@ -20,10 +20,10 @@
        password: "{{ 'Otus2022!' | password_hash('sha512') }}"
        shell: /bin/bash
 
-   - name: Copy script
-     template:
-      src: login.sh
-      dest: /usr/local/bin/
+#   - name: Copy script
+#     template:
+#      src: login.sh
+#      dest: /usr/local/bin/
 
    - name: Config
      shell: |

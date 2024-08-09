@@ -1,29 +1,45 @@
-MACHINES = {
-  :"pam" => {
-              :box_name => "generic/debian12",
-              :box_version => "4.3.12",
-              :cpus => 2,
-              :memory => 1024,
-              :ip => "192.168.57.10",
-            }
-}
+VMS = {
+  :nginx => {
+        :box_name => "generic/debian12",
+        :vm_name => "nginx",
+        :cpus => 2,
+        :memory => 1024,
+        :ip => "192.168.11.11",
+  },
+  :rsyslog => {
+        :box_name => "generic/debian12",
+        :vm_name => "rsyslog",
+        :cpus => 2,
+        :memory => 1024,
+        :ip => "192.168.11.12",
 
+  },
+  :elk => {
+        :box_name => "generic/debian12",
+        :vm_name => "elk",
+        :cpus => 2,
+        :memory => 4096,
+        :ip => "192.168.11.13",
+
+  },
+}
 Vagrant.configure("2") do |config|
-  MACHINES.each do |boxname, boxconfig|
-    config.vm.synced_folder ".", "/vagrant", disabled: true
-    config.vm.network "private_network", ip: boxconfig[:ip]
+  VMS.each do |boxname, boxconfig|
     config.vm.define boxname do |box|
       box.vm.box = boxconfig[:box_name]
-      box.vm.box_version = boxconfig[:box_version]
-      box.vm.host_name = boxname.to_s
-
+      box.vm.host_name = boxconfig[:vm_name]
+      box.vm.network "private_network", ip: boxconfig[:ip]
       box.vm.provider "virtualbox" do |v|
         v.memory = boxconfig[:memory]
         v.cpus = boxconfig[:cpus]
       end
+#      box.vm.provision "shell", inline: <<-SHELL
+#        mkdir -p ~root/.ssh
+#        cp ~vagrant/.ssh/auth* ~root/.ssh
+#      SHELL
       box.vm.provision "ansible" do |ansible|
-        ansible.playbook = "pam.yml"
-      end
+        ansible.playbook = "ansible/config.yml"
+      end		
     end
   end
 end

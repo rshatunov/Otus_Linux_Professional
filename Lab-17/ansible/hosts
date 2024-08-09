@@ -1,0 +1,2 @@
+[Gr01]
+rsyslog ansible_host=192.168.11.12 ansible_port=22 ansible_private_key_file=.vagrant/machines/rsyslog/virtualbox/private_key
