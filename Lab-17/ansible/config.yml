@@ -1,47 +1,71 @@
 ---
-- name: Configure host PAM
-  hosts: all
+################ NGNIX ################
+- name: Configure NGINX
+  hosts: nginx
   become: true
-  vars:
-    nginx_listen_port: 8080
+  
+  tasks:
+   - name: Install packages
+     apt: name={{ item }} state=latest update_cache=true
+     loop: [nginx, auditd, rsyslog]
+
+   - name: Execute shell commands
+     shell: |
+       timedatectl set-timezone Asia/Yekaterinburg
+       localectl set-locale LANG=ru_RU.UTF-8 
+       auditctl -w /etc/nginx -p wa -k AUDIT_NGINX     
+
+   - name: Copy config nginx   
+     template:
+      src: templates/nginx.conf
+      dest: /etc/nginx/nginx.conf
+     notify:
+       - restart nginx
+       
+   - name: Copy config rsyslog   
+     template:
+      src: templates/auditd.conf
+      dest: /etc/rsyslog.d/auditd.conf
+     notify:
+       - restart rsyslog
+       
+  handlers:
+   - name: restart nginx
+     systemd:
+      name: nginx
+      state: restarted
+      enabled: yes
+   - name: restart rsyslog
+     systemd:
+      name: rsyslog
+      state: restarted
+      enabled: yes
+
+################ RSYSLOG ################
+- name: Configure RSYSLOG
+  hosts: rsyslog
+  become: true
 
   tasks:
-   - name: Create user otus
-     user:
-       name: otus
-       create_home: yes
-       password: "{{ 'Otus2022!' | password_hash('sha512') }}"
-       shell: /bin/bash
+   - name: Install packages
+     apt: name={{ item }} state=latest update_cache=true
+     loop: [rsyslog]
 
-
-- name: Configure host PAM
-  hosts: all
-  become: true
-  vars:
-    nginx_listen_port: 8080
-    
-   tasks:
-   - name: Create user otusadm
-     user:
-       name: otusadm
-       create_home: yes
-       password: "{{ 'Otus2022!' | password_hash('sha512') }}"
-       shell: /bin/bash
-
-
-
-
-#   - name: Copy script
-#     template:
-#      src: login.sh
-#      dest: /usr/local/bin/
-
-#   - name: Config
-#     shell: |
-#       groupadd -f admin
-#       usermod otusadm -a -G admin && usermod root -a -G admin && usermod vagrant -a -G admin
-#       chmod +x /usr/local/bin/login.sh
-#       echo "auth required pam_exec.so debug /usr/local/bin/login.sh" >> /etc/pam.d/sshd
-#       systemctl stop vboxadd-service.service
-#       timedatectl set-time "2024-08-04"
-
+   - name: Execute shell commands
+     shell: |
+       timedatectl set-timezone Asia/Yekaterinburg
+       localectl set-locale LANG=ru_RU.UTF-8
+ 
+   - name: Copy config rsyslog   
+     template:
+      src: templates/rsyslog.conf
+      dest: /etc/rsyslog.conf
+     notify:
+       - restart rsyslog
+       
+  handlers:
+   - name: restart rsyslog
+     systemd:
+      name: rsyslog
+      state: restarted
+      enabled: yes
