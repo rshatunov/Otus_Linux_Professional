@@ -1,0 +1,71 @@
+---
+################ NGNIX ################
+- name: Configure NGINX
+  hosts: nginx
+  become: true
+  
+  tasks:
+   - name: Install packages
+     apt: name={{ item }} state=latest update_cache=true
+     loop: [nginx, auditd, rsyslog]
+
+   - name: Execute shell commands
+     shell: |
+       timedatectl set-timezone Asia/Yekaterinburg
+       localectl set-locale LANG=ru_RU.UTF-8 
+       auditctl -w /etc/nginx -p wa -k AUDIT_NGINX     
+
+   - name: Copy config nginx   
+     template:
+      src: templates/nginx.conf
+      dest: /etc/nginx/nginx.conf
+     notify:
+       - restart nginx
+       
+   - name: Copy config rsyslog   
+     template:
+      src: templates/auditd.conf
+      dest: /etc/rsyslog.d/auditd.conf
+     notify:
+       - restart rsyslog
+       
+  handlers:
+   - name: restart nginx
+     systemd:
+      name: nginx
+      state: restarted
+      enabled: yes
+   - name: restart rsyslog
+     systemd:
+      name: rsyslog
+      state: restarted
+      enabled: yes
+
+################ RSYSLOG ################
+- name: Configure RSYSLOG
+  hosts: rsyslog
+  become: true
+
+  tasks:
+   - name: Install packages
+     apt: name={{ item }} state=latest update_cache=true
+     loop: [rsyslog]
+
+   - name: Execute shell commands
+     shell: |
+       timedatectl set-timezone Asia/Yekaterinburg
+       localectl set-locale LANG=ru_RU.UTF-8
+ 
+   - name: Copy config rsyslog   
+     template:
+      src: templates/rsyslog.conf
+      dest: /etc/rsyslog.conf
+     notify:
+       - restart rsyslog
+       
+  handlers:
+   - name: restart rsyslog
+     systemd:
+      name: rsyslog
+      state: restarted
+      enabled: yes
