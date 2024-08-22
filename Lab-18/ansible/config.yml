@@ -8,13 +8,7 @@
   - name: Install packages
     apt: name={{ item }} state=latest update_cache=true
     loop: [borgbackup]
-    
-  - name: Execute shell commands
-    shell: |
-      timedatectl set-timezone Asia/Yekaterinburg
-      localectl set-locale LANG=ru_RU.UTF-8
-      systemctl stop vboxadd-service.service
-     
+        
   - name: Create user otus
     user:
       name: borg
@@ -48,7 +42,14 @@
       recurse: true
       owner: borg
       group: borg
-      mode: 0770   
+      mode: 0770
+
+  - name: Execute shell commands
+    shell: |
+      timedatectl set-timezone Asia/Yekaterinburg
+      localectl set-locale LANG=ru_RU.UTF-8
+      systemctl stop vboxadd-service.service
+      rm -r /var/backup/*      
       
 ################ CLIENT ################
 - name: Configure Client
