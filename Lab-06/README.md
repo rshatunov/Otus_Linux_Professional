@@ -345,6 +345,10 @@ otus  checksum  sha256     local
 ```
 </details>
 4. Работа со снапшотами
+ <details>
+<summary> Восстановление файловой системы из снапшота: </summary>
+
+```
 root@zfs:~# wget -O otus_task2.file --no-check-certificate https://drive.usercontent.google.com/download?id=1wgxjih8YZ-cqLqaZVa0lA3h3Y029c3oI&export=download
 [1] 32652
 root@zfs:~# 
@@ -353,7 +357,13 @@ root@zfs:~#
 [1]+  Завершён        wget -O otus_task2.file --no-check-certificate https://drive.usercontent.google.com/download?id=1wgxjih8YZ-cqLqaZVa0lA3h3Y029c3oI
 root@zfs:~# 
 root@zfs:~# 
-root@zfs:~# zfs receive otus/test@today < otus_task2.file
+root@zfs:~# zfs receive otus/test@today < otus_task2.file                     -                                                    
+```
+</details>
+ <details>
+<summary> Поиска  файла и просмотр его содержимого: </summary>
+
+```
 root@zfs:~# 
 root@zfs:~# 
 root@zfs:~# find /otus/test -name "secret_message"
