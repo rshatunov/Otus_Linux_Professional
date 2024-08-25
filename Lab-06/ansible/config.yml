@@ -1,0 +1,23 @@
+---
+################ ZFS ################
+- name: Configure ZFS
+  hosts: zfs
+  become: true
+
+  tasks:
+  - name: Execute shell commands
+    shell: |
+      timedatectl set-timezone Asia/Yekaterinburg
+      localectl set-locale LANG=ru_RU.UTF-8
+      systemctl stop vboxadd-service.service
+      echo "deb http://deb.debian.org/debian/ bookworm-backports main contrib non-free" >> /etc/apt/sources.list
+      apt update
+
+  - name: Install packages
+    apt: name={{ item }} state=latest update_cache=true
+    loop: [zfsutils-linux, wget]
+    
+  - name: Add the zfs module
+    community.general.modprobe:
+      name: zfs
+      state: present

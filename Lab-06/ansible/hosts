@@ -1,0 +1,2 @@
+[Gr01]
+zfs ansible_host=192.168.11.11 ansible_port=22 ansible_private_key_file=.vagrant/machines/zfs/virtualbox/private_key
