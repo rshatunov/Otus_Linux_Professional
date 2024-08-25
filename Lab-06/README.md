@@ -27,111 +27,171 @@
 <summary> Просмотр списка дисков: </summary>
 
 ```
-[root@lvm vagrant]# pvcreate /dev/sdb
-  Physical volume "/dev/sdb" successfully created.
-[root@lvm vagrant]# pvs
-  PV         VG         Fmt  Attr PSize   PFree 
-  /dev/sda3  VolGroup00 lvm2 a--  <38.97g     0 
-  /dev/sdb              lvm2 ---   10.00g 10.00g
- 
-[root@lvm vagrant]# vgcreate vg_root /dev/sdb
-  Volume group "vg_root" successfully created
-[root@lvm vagrant]# vgs
-  VG         #PV #LV #SN Attr   VSize   VFree  
-  VolGroup00   1   2   0 wz--n- <38.97g      0 
-  vg_root      1   0   0 wz--n- <10.00g <10.00g
-
-[root@lvm vagrant]# lvcreate -n lv_root -l +100%FREE /dev/vg_root
-  Logical volume "lv_root" created.
-[root@lvm vagrant]# lvs
-  LV       VG         Attr       LSize   Pool Origin Data%  Meta%  Move Log Cpy%Sync Convert
-  LogVol00 VolGroup00 -wi-ao---- <37.47g                                                    
-  LogVol01 VolGroup00 -wi-ao----   1.50g                                                    
-  lv_root  vg_root    -wi-a----- <10.00g                                                    
+root@zfs:~# lsblk 
+NAME   MAJ:MIN RM   SIZE RO TYPE MOUNTPOINTS
+sda      8:0    0   128G  0 disk 
+├─sda1   8:1    0   487M  0 part /boot
+├─sda2   8:2    0   1,9G  0 part [SWAP]
+└─sda3   8:3    0 125,6G  0 part /
+sdb      8:16   0     1G  0 disk 
+sdc      8:32   0     1G  0 disk 
+sdd      8:48   0     1G  0 disk 
+sde      8:64   0     1G  0 disk 
+sdf      8:80   0     1G  0 disk 
+sdg      8:96   0     1G  0 disk 
+sdh      8:112  0     1G  0 disk 
+sdi      8:128  0     1G  0 disk                                                     
 ```
 </details>
-
-
-
-
-
-	- Просмотр списка дисков
-```bash
+ <details>
+<summary> Создание пулов из двух дисков в режиме RAID1: </summary>
 
 ```
-	- Создание пулов из двух дисков в режиме RAID1
-```bash
+root@zfs:~# zpool create otus1 mirror /dev/sdb /dev/sdc
+root@zfs:~# zpool create otus2 mirror /dev/sdd /dev/sde
+root@zfs:~# zpool create otus3 mirror /dev/sdf /dev/sdg
+root@zfs:~# zpool create otus4 mirror /dev/sdh /dev/sdi                                                    
+root@zfs:~#
+root@zfs:~#
+root@zfs:~# zpool list
+NAME    SIZE  ALLOC   FREE  CKPOINT  EXPANDSZ   FRAG    CAP  DEDUP    HEALTH  ALTROOT
+otus1   960M   116K   960M        -         -     0%     0%  1.00x    ONLINE  -
+otus2   960M   108K   960M        -         -     0%     0%  1.00x    ONLINE  -
+otus3   960M   114K   960M        -         -     0%     0%  1.00x    ONLINE  -
+otus4   960M   122K   960M        -         -     0%     0%  1.00x    ONLINE  -                                                   
+```
+</details>
+ <details>
+<summary> Настройка алгоритмов сжатия для файловой системы: </summary>
 
 ```
-	- Просмотр информации о пулах дисков
-```bash
-root@client:~# systemctl list-timers  
-NEXT                        LEFT          LAST                        PASSED               UNIT                         ACTIVATES                     
-Thu 2024-08-22 10:38:30 +05 16s left      Thu 2024-08-22 10:33:30 +05 4min 43s ago         borg-backup.timer            borg-backup.service
-root@client:~# 
-root@client:~# borg list borg@192.168.11.12:/var/backup/
-Enter passphrase for key ssh://borg@192.168.11.12/var/backup: 
-etc-2024-08-22_09:58:44              Thu, 2024-08-22 09:58:45 [8b9588a247dc5501515e983dd45d71fa61071b5d0f62e424d7393b5c3ec2672d]
-etc-2024-08-22_10:45:30              Thu, 2024-08-22 10:45:31 [ea4c29c62d24c49e5a6f81902b50ea010ef61bd48ccb5e35f4f6d26f3c590b58]
+root@zfs:~# zfs set compression=lzjb otus1
+root@zfs:~# zfs set compression=lz4 otus2
+root@zfs:~# zfs set compression=gzip-9 otus3
+root@zfs:~# zfs set compression=zle otus4                                                    
+root@zfs:~# 
+root@zfs:~#
+root@zfs:~# zfs get all | grep compression
+otus1  compression           lzjb                       local
+otus2  compression           lz4                        local
+otus3  compression           gzip-9                     local
+otus4  compression           zle                        local                                                   
 ```
-	- Просмотр списка дисков
-```bash
-root@client:~# systemctl list-timers  
-NEXT                        LEFT          LAST                        PASSED               UNIT                         ACTIVATES                     
-Thu 2024-08-22 10:38:30 +05 16s left      Thu 2024-08-22 10:33:30 +05 4min 43s ago         borg-backup.timer            borg-backup.service
-root@client:~# 
-root@client:~# borg list borg@192.168.11.12:/var/backup/
-Enter passphrase for key ssh://borg@192.168.11.12/var/backup: 
-etc-2024-08-22_09:58:44              Thu, 2024-08-22 09:58:45 [8b9588a247dc5501515e983dd45d71fa61071b5d0f62e424d7393b5c3ec2672d]
-etc-2024-08-22_10:45:30              Thu, 2024-08-22 10:45:31 [ea4c29c62d24c49e5a6f81902b50ea010ef61bd48ccb5e35f4f6d26f3c590b58]
+</details>
+ <details>
+<summary> Загрузка одного и того же файла на файловые системы: </summary>
+
 ```
-	- Просмотр списка дисков
-```bash
-root@client:~# systemctl list-timers  
-NEXT                        LEFT          LAST                        PASSED               UNIT                         ACTIVATES                     
-Thu 2024-08-22 10:38:30 +05 16s left      Thu 2024-08-22 10:33:30 +05 4min 43s ago         borg-backup.timer            borg-backup.service
-root@client:~# 
-root@client:~# borg list borg@192.168.11.12:/var/backup/
-Enter passphrase for key ssh://borg@192.168.11.12/var/backup: 
-etc-2024-08-22_09:58:44              Thu, 2024-08-22 09:58:45 [8b9588a247dc5501515e983dd45d71fa61071b5d0f62e424d7393b5c3ec2672d]
-etc-2024-08-22_10:45:30              Thu, 2024-08-22 10:45:31 [ea4c29c62d24c49e5a6f81902b50ea010ef61bd48ccb5e35f4f6d26f3c590b58]
+root@zfs:~# for i in {1..4}; do wget -P /otus$i https://gutenberg.org/cache/epub/2600/pg2600.converter.log; done
+--2024-08-25 21:03:04--  https://gutenberg.org/cache/epub/2600/pg2600.converter.log
+Распознаётся gutenberg.org (gutenberg.org)… 152.19.134.47, 2610:28:3090:3000:0:bad:cafe:47
+Подключение к gutenberg.org (gutenberg.org)|152.19.134.47|:443... соединение установлено.
+HTTP-запрос отправлен. Ожидание ответа… 200 OK
+Длина: 41070955 (39M) [text/plain]
+Сохранение в: «/otus1/pg2600.converter.log»
+
+pg2600.converter.log                      100%[==================================================================================>]  39,17M  7,76MB/s    за 5,9s    
+
+2024-08-25 21:03:11 (6,69 MB/s) - «/otus1/pg2600.converter.log» сохранён [41070955/41070955]
+
+--2024-08-25 21:03:11--  https://gutenberg.org/cache/epub/2600/pg2600.converter.log
+Распознаётся gutenberg.org (gutenberg.org)… 152.19.134.47, 2610:28:3090:3000:0:bad:cafe:47
+Подключение к gutenberg.org (gutenberg.org)|152.19.134.47|:443... соединение установлено.
+HTTP-запрос отправлен. Ожидание ответа… 200 OK
+Длина: 41070955 (39M) [text/plain]
+Сохранение в: «/otus2/pg2600.converter.log»
+
+pg2600.converter.log                      100%[==================================================================================>]  39,17M  9,25MB/s    за 5,0s    
+
+2024-08-25 21:03:17 (7,77 MB/s) - «/otus2/pg2600.converter.log» сохранён [41070955/41070955]
+
+--2024-08-25 21:03:17--  https://gutenberg.org/cache/epub/2600/pg2600.converter.log
+Распознаётся gutenberg.org (gutenberg.org)… 152.19.134.47, 2610:28:3090:3000:0:bad:cafe:47
+Подключение к gutenberg.org (gutenberg.org)|152.19.134.47|:443... соединение установлено.
+HTTP-запрос отправлен. Ожидание ответа… 200 OK
+Длина: 41070955 (39M) [text/plain]
+Сохранение в: «/otus3/pg2600.converter.log»
+
+pg2600.converter.log                      100%[==================================================================================>]  39,17M  4,86MB/s    за 7,4s    
+
+2024-08-25 21:03:25 (5,29 MB/s) - «/otus3/pg2600.converter.log» сохранён [41070955/41070955]
+
+--2024-08-25 21:03:25--  https://gutenberg.org/cache/epub/2600/pg2600.converter.log
+Распознаётся gutenberg.org (gutenberg.org)… 152.19.134.47, 2610:28:3090:3000:0:bad:cafe:47
+Подключение к gutenberg.org (gutenberg.org)|152.19.134.47|:443... соединение установлено.
+HTTP-запрос отправлен. Ожидание ответа… 200 OK
+Длина: 41070955 (39M) [text/plain]
+Сохранение в: «/otus4/pg2600.converter.log»
+
+pg2600.converter.log                      100%[==================================================================================>]  39,17M  10,2MB/s    за 4,7s    
+
+2024-08-25 21:03:31 (8,40 MB/s) - «/otus4/pg2600.converter.log» сохранён [41070955/41070955]
+
+root@zfs:~# 
+root@zfs:~# 
+root@zfs:~# ls -l /otus*
+/otus1:
+итого 22084
+-rw-r--r-- 1 root root 41070955 авг  2 12:54 pg2600.converter.log
+
+/otus2:
+итого 18001
+-rw-r--r-- 1 root root 41070955 авг  2 12:54 pg2600.converter.log
+
+/otus3:
+итого 10963
+-rw-r--r-- 1 root root 41070955 авг  2 12:54 pg2600.converter.log
+
+/otus4:
+итого 40136
+-rw-r--r-- 1 root root 41070955 авг  2 12:54 pg2600.converter.log
+                                                   
 ```
-	- Просмотр списка дисков
-```bash
-root@client:~# systemctl list-timers  
-NEXT                        LEFT          LAST                        PASSED               UNIT                         ACTIVATES                     
-Thu 2024-08-22 10:38:30 +05 16s left      Thu 2024-08-22 10:33:30 +05 4min 43s ago         borg-backup.timer            borg-backup.service
-root@client:~# 
-root@client:~# borg list borg@192.168.11.12:/var/backup/
-Enter passphrase for key ssh://borg@192.168.11.12/var/backup: 
-etc-2024-08-22_09:58:44              Thu, 2024-08-22 09:58:45 [8b9588a247dc5501515e983dd45d71fa61071b5d0f62e424d7393b5c3ec2672d]
-etc-2024-08-22_10:45:30              Thu, 2024-08-22 10:45:31 [ea4c29c62d24c49e5a6f81902b50ea010ef61bd48ccb5e35f4f6d26f3c590b58]
+</details>
+ <details>
+<summary> Проверка степени сжатия тестового файла: </summary>
+
 ```
+root@zfs:~# zfs list
+NAME    USED  AVAIL  REFER  MOUNTPOINT
+otus1  21.7M   810M  21.6M  /otus1
+otus2  17.7M   814M  17.6M  /otus2
+otus3  10.9M   821M  10.7M  /otus3
+otus4  39.3M   793M  39.2M  /otus4
+root@zfs:~# 
+root@zfs:~# 
+root@zfs:~# 
+root@zfs:~# zfs get all | grep compressratio | grep -v ref
+otus1  compressratio         1.81x                      -
+otus2  compressratio         2.23x                      -
+otus3  compressratio         3.65x                      -
+otus4  compressratio         1.00x                      -                                                    
+```
+</details>
+3. Определение алгоритма с наилучшим сжатием
 
 
 
-3. Проверка логирования скрипта:    
-```bash
-root@client:~# journalctl -u borg-backup.service -n21
-авг 22 10:33:34 client systemd[1]: borg-backup.service: Consumed 1.861s CPU time.
-авг 22 10:39:30 client systemd[1]: Starting borg-backup.service - Borg Backup...
-авг 22 10:39:31 client borg[7206]: ------------------------------------------------------------------------------
-авг 22 10:39:31 client borg[7206]: Repository: ssh://borg@192.168.11.12/var/backup
-авг 22 10:39:31 client borg[7206]: Archive name: etc-2024-08-22_10:39:30
-авг 22 10:39:31 client borg[7206]: Archive fingerprint: dc9f95fb0fe5020dffcfc756d3e86e9584c522ac287900c8de25dd1b683c86a3
-авг 22 10:39:31 client borg[7206]: Time (start): Thu, 2024-08-22 10:39:31
-авг 22 10:39:31 client borg[7206]: Time (end):   Thu, 2024-08-22 10:39:31
-авг 22 10:39:31 client borg[7206]: Duration: 0.10 seconds
-авг 22 10:39:31 client borg[7206]: Number of files: 541
-авг 22 10:39:31 client borg[7206]: Utilization of max. archive size: 0%
-авг 22 10:39:31 client borg[7206]: ------------------------------------------------------------------------------
-авг 22 10:39:31 client borg[7206]:                        Original size      Compressed size    Deduplicated size
-авг 22 10:39:31 client borg[7206]: This archive:                1.75 MB            776.09 kB                646 B
-авг 22 10:39:31 client borg[7206]: All archives:                5.26 MB              2.33 MB            829.69 kB
-авг 22 10:39:31 client borg[7206]:                        Unique chunks         Total chunks
-авг 22 10:39:31 client borg[7206]: Chunk index:                     517                 1587
-авг 22 10:39:31 client borg[7206]: ------------------------------------------------------------------------------
-авг 22 10:39:34 client systemd[1]: borg-backup.service: Deactivated successfully.
-авг 22 10:39:34 client systemd[1]: Finished borg-backup.service - Borg Backup.
-авг 22 10:39:34 client systemd[1]: borg-backup.service: Consumed 1.875s CPU time.
+
+
+
+
+
+
+
+
+
+
+
+
+
+ <details>
+<summary> Настройка алгоритмов сжатия для файловой системы: </summary>
+
 ```
+root@zfs:~# zfs set compression=lzjb otus1
+root@zfs:~# zfs set compression=lz4 otus2
+root@zfs:~# zfs set compression=gzip-9 otus3
+root@zfs:~# zfs set compression=zle otus4                                                    
+```
+</details>
