@@ -1,4 +1,33 @@
 ---
+################ inetRouter ################
+- name: Configure inetRouter
+  hosts: inetRouter
+  become: true
+
+  tasks:
+  - name: Install packages
+    apt: name={{ item }} state=latest update_cache=true
+    loop: [iptables, iptables-persistent]
+    
+  - name: Copy config iptables
+    template:
+      src: templates/rules.v4
+      dest: /etc/iptables/rules.v4
+      owner: root
+      group: root
+      mode: 0644
+    
+  - name: Copy config interfaces
+    template:
+      src: templates/inetRouter
+      dest: /etc/network/interfaces
+      owner: root
+      group: root
+      mode: 0644 
+   
+  - name: Reboot
+    reboot:
+
 ################ ALL ################
 - name: Configure ALL
   hosts: all
@@ -11,144 +40,104 @@
       localectl set-locale LANG=ru_RU.UTF-8
       systemctl stop vboxadd-service.service
 
-  - name: Set up forward packages across routers
-    ansible.builtin.sysctl:
-      name: net.ipv4.conf.all.forwarding
-      value: '1'
-      state: present
-    when: "'routers' in group_names"
-
-# ################ SERVER ################
-# - name: Configure Server
-  # hosts: server
-  # become: true
-
-  # tasks:
-  # - name: Install packages
-    # apt: name={{ item }} state=latest update_cache=true
-    # loop: [borgbackup]
-        
-  # - name: Create user otus
-    # user:
-      # name: borg
-      # create_home: yes
-      # shell: /bin/bash
-
-  # - name: Create backup directory
-    # file:
-      # path: /var/backup
-      # state: directory
-      # owner: borg
-      # group: borg
-      # mode: 0770
-
-  # - name: Create a ext4 filesystem on /dev/sdb
-    # community.general.filesystem:
-      # fstype: ext4
-      # dev: /dev/sdb
-
-  # - name: Mount backup volume
-    # mount:
-      # path: /var/backup
-      # src: /dev/sdb
-      # fstype: ext4
-      # state: mounted
-
-  # - name: Set permissions to backup directory
-    # file:
-      # path: /var/backup
-      # state: directory
-      # recurse: true
-      # owner: borg
-      # group: borg
-      # mode: 0770
-
-  # - name: Execute shell commands
-    # shell: |
-      # timedatectl set-timezone Asia/Yekaterinburg
-      # localectl set-locale LANG=ru_RU.UTF-8
-      # systemctl stop vboxadd-service.service
-      # rm -r /var/backup/*      
-      
-# ################ CLIENT ################
-# - name: Configure Client
-  # hosts: client
-  # become: true
-  # vars:
-    # borg_pass: "Otus@2024"
-  
-  # tasks:
-  # - name: Install packages
-    # apt: name={{ item }} state=latest update_cache=true
-    # loop: [borgbackup]
-
-  # - name: Execute shell commands
-    # shell: |
-      # timedatectl set-timezone Asia/Yekaterinburg
-      # localectl set-locale LANG=ru_RU.UTF-8
-      # systemctl stop vboxadd-service.service
-      
-  # - name: Generate an SSH key
-    # community.crypto.openssh_keypair:
-      # path: ~/.ssh/id_rsa
-    # register: pub_key  
- 
-  # - name: Put public key
-    # authorized_key:
-      # user: borg
+  # - name: Set up forward packages across routers
+    # sysctl:
+      # name: net.ipv4.ip_forward
+      # value: '1'
       # state: present
-      # key: "{{ pub_key.public_key }}"
-    # delegate_to: server 
+      # reload: yes
+    # when: "'routers' in group_names"
+    
+################ Central ################    
+  - name: Copy config interfaces centralRouter
+    template:
+      src: templates/centralRouter
+      dest: /etc/network/interfaces
+      owner: root
+      group: root
+      mode: 0644 
+    when: "'centralRouter' in ansible_hostname"
+    
+  - name: Restart networks on centralRouter
+    service:
+      name: networking
+      state: restarted
+    when: "'centralRouter' in ansible_hostname"
+    
+  - name: Copy config interfaces centralServer
+    template:
+      src: templates/centralServer
+      dest: /etc/network/interfaces
+      owner: root
+      group: root
+      mode: 0644 
+    when: "'centralServer' in ansible_hostname"
+    
+  - name: Restart networks on centralServer
+    service:
+      name: networking
+      state: restarted
+    when: "'centralServer' in ansible_hostname"
  
-  # # - name: Put public key for borg user
-    # # ansible.builtin.lineinfile:
-      # # path: /home/borg/.ssh/authorized_keys
-      # # line: "{{ pub_key.public_key }} borg"
-      # # create: true
-      # # owner: borg
-      # # group: borg
-      # # mode: 0600
-    # # delegate_to: server     
-  
-  # - name: Config /etc/ssh/ssd_config
-    # lineinfile:
-      # dest: "/etc/ssh/ssh_config"
-      # regexp: '^#(.*)StrictHostKeyChecking '
-      # line: '    StrictHostKeyChecking no'
+################ Office1 ################  
+  - name: Copy config interfaces office1Router
+    template:
+      src: templates/office1Router
+      dest: /etc/network/interfaces
+      owner: root
+      group: root
+      mode: 0644 
+    when: "'office1Router' in ansible_hostname"
+    
+  - name: Restart networks on office1Router
+    service:
+      name: networking
+      state: restarted
+    when: "'office1Router' in ansible_hostname"
+    
+  - name: Copy config interfaces office1Server
+    template:
+      src: templates/office1Server
+      dest: /etc/network/interfaces
+      owner: root
+      group: root
+      mode: 0644 
+    when: "'office1Server' in ansible_hostname"
+    
+  - name: Restart networks on office1Server
+    service:
+      name: networking
+      state: restarted
+    when: "'office1Server' in ansible_hostname" 
 
-  # - name: Create borg repo
-    # shell:
-      # borg init --encryption=repokey borg@192.168.11.12:/var/backup/
-    # environment:
-        # BORG_PASSPHRASE: "{{ borg_pass }}"
-    # register: borg_init
-    # changed_when: "'Failed' in borg_init.stderr"
-
-  # - name: Create systemd unit
-    # template:
-      # src: templates/borg-backup.service.j2
-      # dest: /etc/systemd/system/borg-backup.service
-      # owner: root
-      # group: root
-      # mode: 0644
-
-  # - name: Create systemd timer
-    # template:
-      # src: templates/borg-backup.timer
-      # dest: /etc/systemd/system/borg-backup.timer
-      # owner: root
-      # group: root
-      # mode: 0644
-
-  # - name: Restart borg-backup timer
-    # systemd:
-      # state: restarted
-      # name: borg-backup.timer
-      # enabled: true
-      # daemon_reload: true
-
-  # - name: Restart borg-backup service
-    # systemd:
-      # state: restarted
-      # name: borg-backup.service
-      # enabled: true
+################ Office2 ################  
+  - name: Copy config interfaces
+    template:
+      src: templates/office2Router
+      dest: /etc/network/interfaces
+      owner: root
+      group: root
+      mode: 0644 
+    when: "'office2Router' in ansible_hostname"
+    
+  - name: Restart networks on office2Router
+    service:
+      name: networking
+      state: restarted
+    when: "'office2Router' in ansible_hostname"
+    
+  - name: Copy config interfaces office2Server
+    template:
+      src: templates/office2Server
+      dest: /etc/network/interfaces
+      owner: root
+      group: root
+      mode: 0644 
+    when: "'office2Server' in ansible_hostname"
+    
+  - name: Restart networks on coffice2Server
+    service:
+      name: networking
+      state: restarted
+    when: "'office2Server' in ansible_hostname" 
+ 
