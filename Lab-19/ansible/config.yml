@@ -141,3 +141,17 @@
       state: restarted
     when: "'office2Server' in ansible_hostname" 
  
+################ TEST ################ 
+- name: Test access to Inernet
+  hosts: servers
+  become: true
+  
+  tasks:
+  - name: Test routes
+    shell:
+      cmd: traceroute -m4 77.88.8.8
+    register: result
+    when: "'servers' in group_names"
+  - name: Print traceroute
+    debug:
+      var: result.stdout_lines

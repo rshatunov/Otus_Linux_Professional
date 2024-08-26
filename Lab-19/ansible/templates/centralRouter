@@ -11,8 +11,8 @@ iface eth1 inet static
       address 192.168.255.2/30
       gateway 192.168.255.1
 	  dns-nameserver 77.88.8.8
-      dns-nameserver 8.8.8.8
-	  post-up echo 1 > /proc/sys/net/ipv4/ip_forward
+      dns-nameserver 8.8.8.8	  
+      post-up echo 1 > /proc/sys/net/ipv4/ip_forward
 
 auto eth2
 iface eth2 inet static
@@ -29,10 +29,12 @@ iface eth4 inet static
 auto eth5
 iface eth5 inet static
       address 192.168.255.9/30
+      post-up ip route add 192.168.2.0/24 via 192.168.255.10
 
 auto eth6
 iface eth6 inet static
       address 192.168.255.5/30
+      post-up ip route add 192.168.1.0/24 via 192.168.255.6
 
 auto eth7
 iface eth7 inet static
