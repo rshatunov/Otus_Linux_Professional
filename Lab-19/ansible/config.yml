@@ -39,14 +39,6 @@
       timedatectl set-timezone Asia/Yekaterinburg
       localectl set-locale LANG=ru_RU.UTF-8
       systemctl stop vboxadd-service.service
-
-  # - name: Set up forward packages across routers
-    # sysctl:
-      # name: net.ipv4.ip_forward
-      # value: '1'
-      # state: present
-      # reload: yes
-    # when: "'routers' in group_names"
     
 ################ Central ################    
   - name: Copy config interfaces centralRouter
@@ -57,13 +49,7 @@
       group: root
       mode: 0644 
     when: "'centralRouter' in ansible_hostname"
-    
-  - name: Restart networks on centralRouter
-    service:
-      name: networking
-      state: restarted
-    when: "'centralRouter' in ansible_hostname"
-    
+      
   - name: Copy config interfaces centralServer
     template:
       src: templates/centralServer
@@ -72,12 +58,7 @@
       group: root
       mode: 0644 
     when: "'centralServer' in ansible_hostname"
-    
-  - name: Restart networks on centralServer
-    service:
-      name: networking
-      state: restarted
-    when: "'centralServer' in ansible_hostname"
+
  
 ################ Office1 ################  
   - name: Copy config interfaces office1Router
@@ -89,12 +70,6 @@
       mode: 0644 
     when: "'office1Router' in ansible_hostname"
     
-  - name: Restart networks on office1Router
-    service:
-      name: networking
-      state: restarted
-    when: "'office1Router' in ansible_hostname"
-    
   - name: Copy config interfaces office1Server
     template:
       src: templates/office1Server
@@ -103,14 +78,7 @@
       group: root
       mode: 0644 
     when: "'office1Server' in ansible_hostname"
-    
-  - name: Restart networks on office1Server
-    service:
-      name: networking
-      state: restarted
-    when: "'office1Server' in ansible_hostname" 
-
-################ Office2 ################  
+     
   - name: Copy config interfaces
     template:
       src: templates/office2Router
@@ -118,12 +86,6 @@
       owner: root
       group: root
       mode: 0644 
-    when: "'office2Router' in ansible_hostname"
-    
-  - name: Restart networks on office2Router
-    service:
-      name: networking
-      state: restarted
     when: "'office2Router' in ansible_hostname"
     
   - name: Copy config interfaces office2Server
@@ -135,11 +97,10 @@
       mode: 0644 
     when: "'office2Server' in ansible_hostname"
     
-  - name: Restart networks on coffice2Server
+  - name: Restart networks
     service:
       name: networking
       state: restarted
-    when: "'office2Server' in ansible_hostname" 
  
 ################ TEST ################ 
 - name: Test access to Inernet
@@ -148,8 +109,7 @@
   
   tasks:
   - name: Test routes
-    shell:
-      cmd: traceroute -m4 77.88.8.8
+    shell: ping -c4 77.88.8.8 && traceroute -m4 77.88.8.8
     register: result
     when: "'servers' in group_names"
   - name: Print traceroute
