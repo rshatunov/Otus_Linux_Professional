@@ -17,6 +17,12 @@
       owner: root
       group: root
       mode: 0644
+
+  - name: Restart end anable iptables
+    ansible.builtin.service:
+      name: iptables
+      enabled: true
+      state: restarted
     
   - name: Copy config interfaces
     template:
@@ -26,8 +32,10 @@
       group: root
       mode: 0644 
    
-  - name: Reboot
-    reboot:
+  - name: Restart networks
+    service:
+      name: networking
+      state: restarted
        
  ################ inetRouter2 ################
 - name: Configure inetRouter2
@@ -54,9 +62,17 @@
       owner: root
       group: root
       mode: 0644
+      
+  - name: Restart end anable iptables
+    ansible.builtin.service:
+      name: iptables
+      enabled: true
+      state: restarted
 
-  - name: Reboot
-    reboot:
+  - name: Restart networks
+    service:
+      name: networking
+      state: restarted
 
 ################ ALL ################
 - name: Configure ALL
@@ -132,4 +148,4 @@
   - name: Restart networks
     service:
       name: networking
-      state: restarted:
+      state: restarted
