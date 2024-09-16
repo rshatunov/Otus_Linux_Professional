@@ -15,8 +15,7 @@ centralRouter может попасть на ssh inetrRouter через knock с
 
 ## Комментарии
 1. С помощью Vagrant и Ansible разварачиваются и настраиваются семь ВМ
-2. В процессе запуска выполняется проверка настроек сети путем запуска команда ping и traceroute со всех хостов в группе servers
-3. Проверка реализации knocking port:    
+2. Проверка реализации knocking port:    
 ```bash
 root@centralServer:~# ping 192.168.255.1
 PING 192.168.255.1 (192.168.255.1) 56(84) bytes of data.
@@ -35,7 +34,7 @@ ED25519 key fingerprint is SHA256:gP3DUfGSIqcyaC40iE2uEhKxUATX+2SrmYVV8kcRrtc.
 This key is not known by any other names.
 Are you sure you want to continue connecting (yes/no/[fingerprint])? 
 ```
-4. Проверка проброса 80 порта на centralServer:    
+3. Проверка проброса 80 порта на centralServer:    
 ```bash
 root@otus:~/otus-linux/Lab-21# curl 192.168.11.18:8080
 <!DOCTYPE html>

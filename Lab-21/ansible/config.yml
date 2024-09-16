@@ -3,6 +3,7 @@
 - name: Configure inetRouter
   hosts: inetRouter
   become: true
+  gather_facts: true
 
   tasks:
   - name: Install packages
@@ -37,7 +38,6 @@
   - name: Install packages
     apt: name={{ item }} state=latest update_cache=true
     loop: [iptables, iptables-persistent]
-    when: "'inetRouter2' in ansible_hostname"
     
   - name: Copy config interfaces inetRouter2
     template:
@@ -46,7 +46,6 @@
       owner: root
       group: root
       mode: 0644 
-    when: "'inetRouter2' in ansible_hostname"
     
   - name: Copy config iptables
     template:
@@ -55,8 +54,6 @@
       owner: root
       group: root
       mode: 0644
-    when: "'inetRouter2' in ansible_hostname"
-  
 
   - name: Reboot
     reboot:
@@ -135,18 +132,4 @@
   - name: Restart networks
     service:
       name: networking
-      state: restarted
- 
-################ TEST ################ 
-- name: Test access to Inernet
-  hosts: servers
-  become: true
-  
-  tasks:
-  - name: Test routes
-    shell: ping -c4 77.88.8.8 && traceroute -m4 77.88.8.8
-    register: result
-    when: "'servers' in group_names"
-  - name: Print traceroute
-    debug:
-      var: result.stdout_lines
+      state: restarted:
