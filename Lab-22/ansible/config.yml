@@ -1,0 +1,53 @@
+---
+################ inetRouter ################
+- name: Configure inetRouter
+  hosts: all
+  become: true
+  gather_facts: true
+
+  tasks:
+  - name: Install packages
+    apt: name={{ item }} state=latest update_cache=true
+    loop: [frr]
+    
+  - name: Copy config frr
+    template:
+      src: templates/daemons
+      dest: /etc/frr/daemons
+      owner: root
+      group: root
+      mode: 0644
+    
+  - name: Copy config frr1
+    template:
+      src: templates/frr1.conf
+      dest: /etc/frr/frr.conf
+      owner: root
+      group: root
+      mode: 0644 
+    when: 'ansible_hostname == "router01"'
+   
+  - name: Copy config frr2
+    template:
+      src: templates/frr2.conf
+      dest: /etc/frr/frr.conf
+      owner: root
+      group: root
+      mode: 0644 
+    when: 'ansible_hostname == "router02"'
+   
+  - name: Copy config frr3
+    template:
+      src: templates/frr3.conf
+      dest: /etc/frr/frr.conf
+      owner: root
+      group: root
+      mode: 0644 
+    when: 'ansible_hostname == "router03"'
+   
+  - name: Restart frr
+    service:
+      name: frr
+      state: restarted
+       
+
