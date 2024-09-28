@@ -1,5 +1,5 @@
 ---
-################ inetRouter ################
+################ Router ################
 - name: Configure inetRouter
   hosts: all
   become: true
@@ -17,6 +17,14 @@
       owner: root
       group: root
       mode: 0644
+
+  - name: Enable ip forwarding
+    sysctl:
+      name: net.ipv4.ip_forward
+      value: '1'
+      sysctl_set: true
+      state: present
+      reload: true
     
   - name: Copy config frr1
     template:
@@ -44,6 +52,7 @@
       group: root
       mode: 0644 
     when: 'ansible_hostname == "router03"'
+
    
   - name: Restart frr
     service:

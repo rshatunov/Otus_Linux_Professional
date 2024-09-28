@@ -23,7 +23,7 @@ MACHINES = {
 
   :router03 => {
         :box_name => "generic/debian12",
-        :vm_name => "router-03",
+        :vm_name => "router03",
         :net => [
                    ["10.0.0.3", 2, "255.255.255.254",  "net13"],
                    ["10.0.0.4", 3, "255.255.255.254",  "net23"],
