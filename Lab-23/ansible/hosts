@@ -1,0 +1,6 @@
+[srv]
+server ansible_host=192.168.11.11 ansible_user=vagrant ansible_ssh_private_key_file=.vagrant/machines/server/virtualbox/private_key 
+client ansible_host=192.168.11.12 ansible_user=vagrant ansible_ssh_private_key_file=.vagrant/machines/client/virtualbox/private_key 
+
+
+

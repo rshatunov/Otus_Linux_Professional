@@ -1,0 +1,114 @@
+---
+################ Common ################
+- name: Configure all
+  hosts: all
+  become: true
+  gather_facts: true
+
+  tasks:
+  - name: Install packages
+    apt: name={{ item }} state=latest update_cache=true
+    loop: [openvpn, iperf3] 
+      
+  - name: Enable ip forwarding
+    sysctl:
+      name: net.ipv4.ip_forward
+      value: '1'
+      sysctl_set: true
+      state: present
+      reload: true
+    
+  - name: Execute shell commands
+    shell: |
+      timedatectl set-timezone Asia/Yekaterinburg
+      localectl set-locale LANG=ru_RU.UTF-8
+      systemctl stop vboxadd-service.service
+ 
+################ TUN ################ 
+  
+  - name: Copy files to server
+    copy:
+      src: '{{item}}'
+      dest: '/etc/openvpn/'
+      owner: root
+      group: root
+      mode: 0644
+    loop:
+      - templates/server.crt
+      - templates/server.key
+      - templates/ca.crt
+      - templates/server.conf
+      - templates/server.conf
+      - templates/dh.pem
+    when: 'ansible_hostname == "server"'
+    
+  - name: Restart openvpn@server
+    systemd_service:
+      name: openvpn@server
+      state: restarted
+    when: 'ansible_hostname == "server"'
+    
+  - name: Run iperf3 on server
+    shell: iperf3 -s -D
+    when: 'ansible_hostname == "server"'  
+    
+  - name: Copy files to client
+    copy:
+      src: '{{item}}'
+      dest: '/etc/openvpn/'
+      owner: root
+      group: root
+      mode: 0644
+    loop:
+      - templates/client.crt
+      - templates/client.key
+      - templates/ca.crt
+      - templates/client.conf
+    when: 'ansible_hostname == "client"' 
+      
+  - name: Restart openvpn@client
+    systemd:
+      state: restarted
+      name: openvpn@client
+    when: 'ansible_hostname == "client"'
+
+  - name: Run iperf3 on client
+    shell: iperf3 -c 10.10.10.1 -t 30 -i 40
+    register: command_output
+    when: 'ansible_hostname == "client"'
+    
+  - name: TUN interface performance 
+    debug:
+      var: command_output.stdout_lines
+
+# ################ TAP ################
+  - name: Set TAP interface 
+    shell: |
+      sed -i 's/dev tun/dev tap/g' /etc/openvpn/server.conf
+    when: 'ansible_hostname == "server"'
+      
+  - name: Restart openvpn@server
+    systemd_service:
+      name: openvpn@server
+      state: restarted
+    when: 'ansible_hostname == "server"'
+    
+  - name: Set TAP interface 
+    shell: |
+      sed -i 's/dev tun/dev tap/g' /etc/openvpn/client.conf
+    when: 'ansible_hostname == "client"'     
+     
+  - name: Restart openvpn@client
+    systemd:
+      state: restarted
+      name: openvpn@client
+    when: 'ansible_hostname == "client"'
+    
+  - name: Run iperf3 on client
+    shell: iperf3 -c 10.10.10.1 -t 30 -i 40
+    register: command_output
+    when: 'ansible_hostname == "client"'
+    
+  - name: TAP interface performance 
+    debug:
+      var: command_output.stdout_lines
