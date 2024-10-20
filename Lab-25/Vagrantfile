@@ -1,0 +1,108 @@
+# -*- mode: ruby -*-
+# vim: set ft=ruby :
+
+MACHINES = {
+  :inetRouter => {
+        :box_name => "generic/debian12",
+        :vm_name => "inetRouter",
+        :net => [
+                    ["1.1.1.1", 2, "255.255.255.255",  "inet-central"],
+					["1.1.1.2", 3, "255.255.255.255",  "inet-central"],
+                    ["192.168.11.11", 8, "255.255.255.0"],
+                ]
+  },
+  :centralRouter => {
+        :box_name => "generic/debian12",
+        :vm_name => "centralRouter",
+        :net => [
+                   ["1.1.1.3", 2, "255.255.255.255",  "inet-central"],
+                   ["1.1.1.4", 3, "255.255.255.255",  "inet-central"],
+                   ["192.168.255.9",  6, "255.255.255.252",  "central-office1"],
+                   ["192.168.11.12", 8, "255.255.255.0"],
+                ]
+  },
+   :office1Router => {
+         :box_name => "generic/debian12",
+         :vm_name => "office1Router",
+         :net => [
+                    ["192.168.255.10",  2, "255.255.255.252",  "central-office1"],
+                    ["1.1.1.5", 3, "255.255.255.255",  "vlan1"],
+					["1.1.1.6", 4, "255.255.255.255",  "vlan2"],
+                    ["192.168.11.13", 8, "255.255.255.0"],
+                 ]
+   },
+
+  :test1Server => {
+        :box_name => "generic/debian12",
+        :vm_name => "test1Server",
+        :net => [
+                   ["1.1.1.7", 2, "255.255.255.255",  "vlan1"],
+                   ["192.168.11.14", 8, "255.255.255.0"],
+                ]
+  },
+
+  :test1Client => {
+        :box_name => "generic/debian12",
+        :vm_name => "test1Client",
+        :net => [
+                   ["1.1.1.8", 2, "255.255.255.255",  "vlan1"],
+                   ["192.168.11.15", 8, "255.255.255.0"],
+                ]
+  },
+
+  :test2Server => {
+        :box_name => "generic/debian12",
+        :vm_name => "test1Server",
+        :net => [
+                   ["1.1.1.9", 2, "255.255.255.255",  "vlan2"],
+                   ["192.168.11.16", 8, "255.255.255.0"],
+                ]
+  },
+
+  :test2Client => {
+        :box_name => "generic/debian12",
+        :vm_name => "test2Client",
+        :net => [
+                   ["1.1.1.10", 2, "255.255.255.255",  "vlan2"],
+                   ["192.168.11.17", 8, "255.255.255.0"],
+                ]
+  },
+}
+
+Vagrant.configure("2") do |config|
+  MACHINES.each do |boxname, boxconfig|
+    config.vm.define boxname do |box|
+      box.vm.box = boxconfig[:box_name]
+      box.vm.host_name = boxconfig[:vm_name]
+
+      box.vm.provider "virtualbox" do |v|
+        v.memory = 1024
+        v.cpus = 2
+       end
+
+      boxconfig[:net].each do |ipconf|
+        box.vm.network("private_network", ip: ipconf[0], adapter: ipconf[1], netmask: ipconf[2], virtualbox__intnet: ipconf[3])
+      end
+
+      if boxconfig.key?(:public)
+        box.vm.network "public_network", boxconfig[:public]
+      end
+
+	  box.vm.provision "shell" do |s|
+        ssh_pub_key = File.readlines("/root/.ssh/id_rsa.pub").first.strip
+        s.inline = <<-SHELL
+        echo #{ssh_pub_key} >> /root/.ssh/authorized_keys
+        SHELL
+		if boxconfig[:vm_name] == "test2Client"
+          box.vm.provision "ansible" do |ansible|		  
+            ansible.playbook = "ansible/config.yml"
+            ansible.inventory_path = "ansible/hosts"
+            ansible.host_key_checking = "false"
+            ansible.become = "true"
+            ansible.limit = "all"
+          end
+        end		  
+      end
+    end
+  end
+end 

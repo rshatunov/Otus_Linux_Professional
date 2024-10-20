@@ -1,0 +1,257 @@
+---
+################ inetRouter ################
+- name: Configure inetRouter
+  hosts: inetRouter
+  become: true
+  tasks: 
+  
+  - name: Install packages
+    apt: name={{ item }} state=latest update_cache=true
+    loop: [iptables, iptables-persistent,ifenslave]
+    
+  - name: Copy config interfaces
+    template:
+      src: templates/inetRouter
+      dest: /etc/network/interfaces
+      owner: root
+      group: root
+      mode: 0644 
+  
+  - name: Copy config iptables
+    template:
+      src: templates/rules.v4
+      dest: /etc/iptables/rules.v4
+      owner: root
+      group: root
+      mode: 0644
+   
+  - name: Reboot
+    reboot:
+
+################ ALL ################
+- name: Configure ALL
+  hosts: all
+  become: true
+
+  tasks:
+  - name: Execute shell commands
+    shell: |
+      timedatectl set-timezone Asia/Yekaterinburg
+      localectl set-locale LANG=ru_RU.UTF-8
+      systemctl stop vboxadd-service.service
+  
+  - name: Install packages
+    apt: name={{ item }} state=latest update_cache=true
+    loop: [ifenslave, net-tools, tcpdump, vlan]
+
+################ centralRouter ################
+- name: Configure centralRouter
+  hosts: centralRouter
+  become: true
+  tasks:
+  
+  - name: Copy config interfaces centralRouter
+    template:
+      src: templates/centralRouter
+      dest: /etc/network/interfaces
+      owner: root
+      group: root
+      mode: 0644 
+    
+  - name: Restart networks
+    service:
+      name: networking
+      state: restarted
+      
+################ office1Router ################
+- name: Configure office1Router
+  hosts: office1Router
+  become: true
+  tasks:
+  
+  - name: Copy config interfaces office1Router
+    template:
+      src: templates/office1Router
+      dest: /etc/network/interfaces
+      owner: root
+      group: root
+      mode: 0644 
+    
+  - name: Restart networks
+    service:
+      name: networking
+      state: restarted
+
+################ test1Server ################
+- name: Configure test1Server
+  hosts: test1Server
+  become: true
+  tasks:
+  
+  - name: Copy config interfaces test1Server
+    template:
+      src: templates/test1Server
+      dest: /etc/network/interfaces
+      owner: root
+      group: root
+      mode: 0644 
+    
+  - name: Restart networks
+    service:
+      name: networking
+      state: restarted
+
+################ test1Client ################
+- name: Configure test1Client
+  hosts: test1Client
+  become: true
+  tasks:
+  
+  - name: Copy config interfaces test1Client
+    template:
+      src: templates/test1Client
+      dest: /etc/network/interfaces
+      owner: root
+      group: root
+      mode: 0644 
+    
+  - name: Restart networks
+    service:
+      name: networking
+      state: restarted
+
+################ test2Server ################
+- name: Configure test2Server
+  hosts: test2Server
+  become: true
+  tasks:
+  
+  - name: Copy config interfaces test2Server
+    template:
+      src: templates/test2Server
+      dest: /etc/network/interfaces
+      owner: root
+      group: root
+      mode: 0644 
+    
+  - name: Restart networks
+    service:
+      name: networking
+      state: restarted
+
+################ test2Client ################
+- name: Configure test2Client
+  hosts: test2Client
+  become: true
+  tasks:
+  
+  - name: Copy config interfaces test2Client
+    template:
+      src: templates/test2Client
+      dest: /etc/network/interfaces
+      owner: root
+      group: root
+      mode: 0644 
+    
+  - name: Restart networks
+    service:
+      name: networking
+      state: restarted
+
+################ TEST #1 ################ 
+- name: Test config bond
+  hosts: all
+  become: true
+  tasks:  
+  
+  - name: Test config bond on inetRouter
+    shell: |
+        echo '##########################'
+        echo '### Test on inetRouter ###'
+        echo '##########################'
+        echo ''
+        echo '### Status interface bond1 ###'
+        cat /proc/net/bonding/bond1
+        echo '#########################################'
+        echo '### Check connection to centralRouter ###'
+        ping 192.168.255.2 -c4
+    register: command_output
+
+  - name: Print tests results
+    debug:
+      var: command_output.stdout_lines
+
+    when: 
+    - ansible_hostname == "inetRouter"
+
+  - name: Test config bond on centralRouter
+    shell: |
+        echo '#############################'
+        echo '### Test on centralRouter ###'
+        echo '#############################'
+        echo ''
+        echo '### Status interface bond1 ###'
+        cat /proc/net/bonding/bond1
+        echo '#######################################'
+        echo '### Check connection to inetlRouter ###'
+        ping 192.168.255.1 -c4
+    register: command_output
+
+  - name: Print tests results
+    debug:
+      var: command_output.stdout_lines
+
+    when: 
+    - ansible_hostname == "centralRouter"
+    
+################ TEST #2 ################ 
+- name: Test config vlan
+  hosts: all
+  become: true
+  tasks:  
+  
+  - name: Test config vlan on test1Client
+    shell: |
+        echo '###########################'
+        echo '### Test on test1Client ###'
+        echo '###########################'
+        echo ''
+        echo '### Status interface eth1.100 and routing table ###'
+        ifconfig eth1.100
+        netstat -rn
+        echo '##############################################################'
+        echo '### Check connection to test1Server/office1Router/Internet ###'
+        ping 192.168.21.2 -c4
+        ping 192.168.21.1 -c4
+        ping 77.88.8.8 -c4
+    register: command_output
+
+  - name: Print tests results
+    debug:
+      var: command_output.stdout_lines
+
+    when: 
+    - ansible_hostname == "test1Client"
+
+  - name: Test config vlan on test2Client
+    shell: |
+        echo '###########################'
+        echo '### Test on test2Client ###'
+        echo '###########################'
+        echo ''
+        echo '### Status interface eth1.200 and routing table ###'
+        ifconfig eth1.200
+        netstat -rn
+        echo '##############################################################'
+        echo '### Check connection to test1Server/office1Router/Internet ###'
+        ping 192.168.22.2 -c4
+        ping 192.168.22.1 -c4
+        ping 77.88.8.8 -c4
+    register: command_output
+
+  - name: Print tests results
+    debug:
+      var: command_output.stdout_lines
+
+    when: 
+    - ansible_hostname == "test2Client"

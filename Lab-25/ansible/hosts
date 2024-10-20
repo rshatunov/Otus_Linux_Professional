@@ -1,0 +1,11 @@
+[routers]
+inetRouter ansible_host=192.168.11.11 ansible_user=vagrant ansible_ssh_private_key_file=.vagrant/machines/inetRouter/virtualbox/private_key 
+centralRouter ansible_host=192.168.11.12 ansible_user=vagrant ansible_ssh_private_key_file=.vagrant/machines/centralRouter/virtualbox/private_key 
+office1Router ansible_host=192.168.11.13 ansible_user=vagrant ansible_ssh_private_key_file=.vagrant/machines/office1Router/virtualbox/private_key 
+
+[Clients]
+test1Server ansible_host=192.168.11.14 ansible_user=vagrant ansible_ssh_private_key_file=.vagrant/machines/test1Server/virtualbox/private_key
+test1Client ansible_host=192.168.11.15 ansible_user=vagrant ansible_ssh_private_key_file=.vagrant/machines/test1Client/virtualbox/private_key
+test2Server ansible_host=192.168.11.16 ansible_user=vagrant ansible_ssh_private_key_file=.vagrant/machines/test2Server/virtualbox/private_key
+test2Client ansible_host=192.168.11.17 ansible_user=vagrant ansible_ssh_private_key_file=.vagrant/machines/test2Client/virtualbox/private_key
+

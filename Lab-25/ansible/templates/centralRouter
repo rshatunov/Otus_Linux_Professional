@@ -1,0 +1,38 @@
+auto lo
+iface lo inet loopback
+
+auto eth0
+iface eth0 inet static
+      address 10.0.2.15/24
+      pre-up sleep 2
+
+auto eth1
+iface eth1 inet manual
+
+auto eth2
+iface eth2 inet manual
+
+auto bond1
+iface bond1 inet static
+	bond-slaves eth1 eth2
+	bond-miimon 100
+	bond-mode active-backup
+	bond-downdelay 200
+	bond-updelay 200
+	address 192.168.255.2/30
+	gateway 192.168.255.1
+	dns-nameserver 77.88.8.8
+    dns-nameserver 8.8.8.8
+	post-up echo 1 > /proc/sys/net/ipv4/ip_forward
+
+auto eth3
+iface eth3 inet static
+      address 192.168.255.9/30
+      post-up ip route add 192.168.2.0/24 via 192.168.255.10
+	  post-up ip route add 192.168.21.0/24 via 192.168.255.10
+	  post-up ip route add 192.168.22.0/24 via 192.168.255.10
+
+auto eth4
+iface eth4 inet static
+      address 192.168.11.12/24
+
