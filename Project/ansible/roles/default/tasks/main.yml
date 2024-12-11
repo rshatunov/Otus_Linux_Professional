@@ -1,0 +1,8 @@
+---
+# tasks file for default
+
+  - name: Execute shell commands
+    shell: |
+      timedatectl set-timezone Asia/Yekaterinburg
+      localectl set-locale LANG=ru_RU.UTF-8
+      systemctl stop vboxadd-service.service
