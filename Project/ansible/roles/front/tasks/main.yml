@@ -1,0 +1,35 @@
+---
+# tasks file for front
+
+- name: Copy config interfaces
+  template:
+    src: interfaces
+    dest: /etc/network/interfaces
+    owner: root
+    group: root
+    mode: 0644 
+   
+- name: Restart networks
+  service:
+    name: networking
+    state: restarted
+
+- name: Install packages
+  apt: name={{ item }} state=latest update_cache=true
+  loop: [iptables, iptables-persistent, prometheus-node-exporter]
+    
+- name: Copy config iptables
+  template:
+    src: rules.v4
+    dest: /etc/iptables/rules.v4
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Restart end anable iptables
+  service:
+    name: iptables
+    enabled: true
+    state: restarted
+    
+

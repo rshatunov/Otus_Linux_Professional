@@ -1,0 +1,19 @@
+---
+# tasks file for monitor
+
+- name: Copy network config
+  template:
+    src: interfaces
+    dest: /etc/network/interfaces
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Restart service networking
+  service:
+    name: networking
+    state: restarted
+
+- name: Install packages
+  apt: name={{ item }} state=latest update_cache=true
+  loop: [prometheus-node-exporter]

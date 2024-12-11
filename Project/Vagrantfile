@@ -1,0 +1,87 @@
+MACHINES = {
+  :front => {
+        :box_name => "generic/debian12",
+        :vm_name => "front",
+        :net => [
+                    ["192.168.11.11", 8, "255.255.255.0"],
+                ]
+  },
+  
+    :back1 => {
+        :box_name => "generic/debian12",
+        :vm_name => "back1",
+        :net => [
+                    ["192.168.11.12", 8, "255.255.255.0"],
+                ]
+  },
+
+  :back2 => {
+        :box_name => "generic/debian12",
+        :vm_name => "back2",
+        :net => [
+                   ["192.168.11.13", 8, "255.255.255.0"],
+                ]
+  },
+
+  :db1 => {
+        :box_name => "generic/debian12",
+        :vm_name => "db1",
+        :net => [
+                   ["192.168.11.14", 8, "255.255.255.0"],
+                ]
+  },
+
+  :db2 => {
+        :box_name => "generic/debian12",
+        :vm_name => "db2",
+        :net => [
+                   ["192.168.11.15", 8, "255.255.255.0"],
+                ]
+  },
+
+  :monitor => {
+       :box_name => "generic/debian12",
+       :vm_name => "monitor",
+       :net => [
+                  ["192.168.11.16", 8, "255.255.255.0"],
+               ]
+  }
+}
+
+Vagrant.configure("2") do |config|
+  MACHINES.each do |boxname, boxconfig|
+    config.vm.define boxname do |box|
+      box.vm.box = boxconfig[:box_name]
+      box.vm.host_name = boxconfig[:vm_name]
+
+      box.vm.provider "virtualbox" do |v|
+        v.memory = 4096
+        v.cpus = 2
+       end
+
+      boxconfig[:net].each do |ipconf|
+        box.vm.network("private_network", ip: ipconf[0], adapter: ipconf[1], netmask: ipconf[2], virtualbox__intnet: ipconf[3])
+      end
+
+      if boxconfig[:vm_name] == "front"
+        box.vm.network "public_network", ip: "10.255.201.123"
+      end
+
+	  box.vm.provision "shell" do |s|
+        ssh_pub_key = File.readlines("/root/.ssh/id_rsa.pub").first.strip
+        s.inline = <<-SHELL
+        echo #{ssh_pub_key} >> /root/.ssh/authorized_keys
+        SHELL
+	  end
+      if boxconfig[:vm_name] == "monitor"
+        box.vm.provision "ansible" do |ansible|		  
+          ansible.playbook = "ansible/config.yml"
+          ansible.inventory_path = "ansible/hosts"
+          ansible.host_key_checking = "false"
+          ansible.become = "true"
+          ansible.limit = "all"
+		end  
+      end
+    end
+  end
+end 
