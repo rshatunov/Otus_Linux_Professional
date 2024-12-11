@@ -1,0 +1,43 @@
+---
+- name: Configuration for all hosts
+  hosts: all
+  become: true
+  gather_facts: true
+  roles:
+  - default
+
+- name: Configuration host front
+  hosts: front
+  become: true
+  roles:
+  - front
+
+- name: Configuration host monitor
+  hosts: monitor
+  become: true
+  roles:
+  - monitor
+
+- name: Configuration host back1
+  hosts: back1
+  become: true
+  roles:
+  - back1
+
+- name: Configuration host back2
+  hosts: back2
+  become: true
+  roles:
+  - back2
+  
+- name: Configuration host db1
+  hosts: db1
+  become: true
+  roles:
+  - db1
+
+- name: Configuration host db2
+  hosts: db2
+  become: true
+  roles:
+  - db2
