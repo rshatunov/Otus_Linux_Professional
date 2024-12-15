@@ -1,5 +1,5 @@
 ---
-# tasks file for monitor
+# Network
 
 - name: Copy network config
   template:
@@ -13,25 +13,33 @@
   service:
     name: networking
     state: restarted
+
+# Prometheus
     
 - name: Install packages
   apt: name={{ item }} state=latest update_cache=true
-  loop: [prometheus, prometheus-alertmanager]
+  loop: [prometheus, prometheus-alertmanager, apt-transport-https, software-properties-common]
 
 - name: Create prometheus config file
   template:
     src: prometheus.conf.j2
     dest: /etc/prometheus/prometheus.yml
-#  notify: event_restart_prometheus
-
-# - name: Create alert config file
-  # template:
-    # src: alertrules.yml
-    # dest: /etc/prometheus/alert.rules.yml
- # # notify: event_restart_prometheus
 
 - name: Start prometheus service
   service:
     name: prometheus
     state: restarted
 
+# Grafana
+
+- name: Import the GPG key
+  apt_key:
+    url: https://apt.grafana.com/gpg.key
+    state: present
+
+- name: Add grafana repository into sources list
+  ansible.builtin.apt_repository:
+    repo: deb https://apt.grafana.com stable main
+    state: present
+    filename: grafana
+    
